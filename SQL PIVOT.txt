@@ -1,0 +1,37 @@
+CREATE VIEW VW_Liander AS
+SELECT * FROM 
+	(
+	SELECT --PandOmsch,
+	CASE 
+	WHEN (PandOmsch LIKE '%Laarberg' ) THEN 'Laarberg' 
+	WHEN (PandOmsch LIKE '%Noordveen%' ) THEN 'Noordveen' 
+	END AS PandOmsch,
+
+    FORMAT (period, 'yyyy-MM-dd') AS Datum,
+    ROUND(SUM(consumption),0) AS Productie_KWh
+	FROM Liander
+	WHERE period > '2021-03-15 23:00:00.0000000' AND period < '2022-05-26 00:00:00.0000000'
+	GROUP BY
+	PandOmsch,
+	FORMAT (period, 'yyyy-MM-dd')
+	)
+	temp_table
+PIVOT (
+	AVG(Productie_KWh)
+	FOR PandOmsch IN (Laarberg, Noordveen)
+	) AS pivot_table
+
+
+SELECT * FROM order_stats
+PIVOT(
+    COUNT(order_id) orders,
+    SUM(order_value) sales
+    FOR category_name
+    IN ( 
+        'CPU' CPU,
+        'Video Card' VideoCard, 
+        'Mother Board' MotherBoard,
+        'Storage' Storage
+    )
+)
+ORDER BY status;
